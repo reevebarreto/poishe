@@ -4,7 +4,10 @@ import { getAccessToken } from '@/lib/utils/getAccessToken';
 
 export async function GET() {
   try {
+    // Get access token for the authenticated user
     const accessToken = await getAccessToken();
+
+    // Fetch account balances from Plaid
     const plaidResponse = await plaidClient.accountsBalanceGet({ access_token: accessToken });
     return NextResponse.json(plaidResponse.data);
   } catch (error: unknown) {

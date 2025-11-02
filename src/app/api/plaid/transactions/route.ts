@@ -4,8 +4,10 @@ import { getAccessToken } from '@/lib/utils/getAccessToken';
 
 export async function GET() {
   try {
+    // Get access token for the authenticated user
     const accessToken = await getAccessToken();
 
+    // Fetch transactions from Plaid
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
 

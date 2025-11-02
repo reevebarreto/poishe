@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       item_id,
     });
 
-    return NextResponse.json({ access_token });
+    return NextResponse.json({ success: true });
   } catch (error: unknown) {
     console.error(error);
     const message = error instanceof Error ? error.message : String(error);
