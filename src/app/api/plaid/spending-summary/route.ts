@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { plaidClient } from "@/lib/plaid/client";
 import { getAccessToken } from "@/lib/utils/getAccessToken";
-import { TransactionsGetRequest } from "plaid";
 import { fetchTransactions } from "@/lib/plaid/fetchTransactions";
 
 export async function GET(req: NextRequest) {
   try {
-    // Get access token for the authenticated user
-    const accessToken = await getAccessToken();
-
     // Get account IDs from query parameters
     const { accountId } = Object.fromEntries(
       req.nextUrl.searchParams.entries()
@@ -22,10 +18,19 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Fetch transactions for the specified account IDs
+    // Fetch transactions from Plaid
     const response = await fetchTransactions(accountId, 365, 0);
 
-    return NextResponse.json(response.data);
+    // Aggregate by top-level category
+    const summary: Record<string, number> = {};
+    for (const tx of response.data.transactions) {
+      if (tx.amount <= 0) continue; // skip income/refunds
+      const category =
+        tx.personal_finance_category?.primary?.[0] ?? "Uncategorized";
+      summary[category] = (summary[category] ?? 0) + tx.amount;
+    }
+
+    return NextResponse.json({ summary });
   } catch (error: unknown) {
     console.error(error);
     const message = error instanceof Error ? error.message : String(error);
