@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { TransactionsGetResponse } from "plaid";
 
 export default function TransactionsPage() {
-    // TODO: create a middleware to check if the user has connected bank account
   const { accountId } = useParams();
   const [transactions, setTransactions] = useState<TransactionsGetResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +58,7 @@ export default function TransactionsPage() {
                 className="border-t hover:bg-gray-50 transition-colors"
               >
                 <td className="px-4 py-3 text-gray-600">{tx.date}</td>
-                <td className="px-4 py-3">{tx.merchant_name}</td>
+                <td className="px-4 py-3">{tx.merchant_name || tx.name}</td>
                 <td className="px-4 py-3 text-gray-500">
                   {tx.personal_finance_category?.primary}
                 </td>
@@ -68,7 +67,7 @@ export default function TransactionsPage() {
                     tx.amount > 0 ? "text-red-600" : "text-green-600"
                   }`}
                 >
-                    {tx.iso_currency_code} {tx.amount.toFixed(2)}
+                    {tx.iso_currency_code} {(tx.amount * -1).toFixed(2)}
                 </td>
               </tr>
             ))}

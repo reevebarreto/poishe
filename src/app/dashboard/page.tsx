@@ -11,7 +11,6 @@ import Link from 'next/link';
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [linkToken, setLinkToken] = useState<string | null>(null);
-  const [connected, setConnected] = useState<boolean>(false);
   const [balances, setBalances] = useState<AccountsGetResponse | null>(null);
 
   useEffect(() => {
@@ -28,7 +27,6 @@ export default function Dashboard() {
         // Check Plaid connection status
         const statusRes = await axios.get('/api/plaid/status')
         console.log('Plaid status response:', statusRes.data);
-        setConnected(statusRes.data.connected);
       } catch (err) {
         console.error('Error fetching user:', err);
         redirect('/login');
@@ -38,7 +36,7 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (!user || connected) return;
+    if (!user) return;
 
     // Generate link token
     const createLinkToken = async () => {
@@ -54,7 +52,7 @@ export default function Dashboard() {
       }
     };
     createLinkToken();
-  }, [user, connected]);
+  }, [user]);
 
   const onSuccess = async (public_token: string) => {
     // Exchange public token for access token
@@ -63,10 +61,7 @@ export default function Dashboard() {
         public_token,
       });
 
-      if (response.data.success) {
-        setConnected(true);
-      }
-      else {
+      if (!response.data.success) {
         console.error('Error exchanging public token:', response.data.error);
       }
     } catch (error) {
@@ -82,24 +77,23 @@ export default function Dashboard() {
 
     // Fetch balances when connected
   useEffect(() => {
-    if (!connected) return;
     const fetchBalance = async () => {
       const res = await axios.get("/api/plaid/balance");
       setBalances(res.data);
     };
     fetchBalance();
-  }, [connected]);
+  }, []);
 
   return (
     <div>
       <p>Hello {user?.email}</p>
-      {linkToken && !connected && (
+      {linkToken && (
         <button onClick={() => open()} disabled={!ready}>
           Connect Bank
         </button>
       )}
 
-      {connected && balances && (
+      {balances && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Your Accounts</h2>
           {balances.accounts.map((acc, i) => (
