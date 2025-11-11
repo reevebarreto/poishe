@@ -1,12 +1,12 @@
-"use client"
-import React, { useState, useEffect } from 'react';
-import { usePlaidLink } from 'react-plaid-link';
-import axios from 'axios';
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { User } from '@supabase/supabase-js';
-import { AccountsGetResponse } from 'plaid';
-import Link from 'next/link';
+"use client";
+import React, { useState, useEffect } from "react";
+import { usePlaidLink } from "react-plaid-link";
+import axios from "axios";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { User } from "@supabase/supabase-js";
+import { AccountsGetResponse } from "plaid";
+import Link from "next/link";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -20,16 +20,16 @@ export default function Dashboard() {
         const supabase = createClient();
         const { data, error } = await supabase.auth.getUser();
         if (error || !data?.user) {
-          redirect('/login');
+          redirect("/login");
         }
         setUser(data.user);
 
         // Check Plaid connection status
-        const statusRes = await axios.get('/api/plaid/status')
-        console.log('Plaid status response:', statusRes.data);
+        const statusRes = await axios.get("/api/plaid/status");
+        console.log("Plaid status response:", statusRes.data);
       } catch (err) {
-        console.error('Error fetching user:', err);
-        redirect('/login');
+        console.error("Error fetching user:", err);
+        redirect("/login");
       }
     };
     initUser();
@@ -42,12 +42,12 @@ export default function Dashboard() {
     const createLinkToken = async () => {
       try {
         // hasCreatedToken.current = true; // Set before the call
-        const response = await axios.post('/api/plaid/create-link-token', {
-          client_user_id: user?.id || 'unique_user',
+        const response = await axios.post("/api/plaid/create-link-token", {
+          client_user_id: user?.id || "unique_user",
         });
         setLinkToken(response.data.link_token);
       } catch (error) {
-        console.error('Error generating link token:', error);
+        console.error("Error generating link token:", error);
         // hasCreatedToken.current = false; // Reset on error so it can retry
       }
     };
@@ -57,17 +57,17 @@ export default function Dashboard() {
   const onSuccess = async (public_token: string) => {
     // Exchange public token for access token
     try {
-      const response = await axios.post('/api/plaid/exchange-token', {
+      const response = await axios.post("/api/plaid/exchange-token", {
         public_token,
       });
 
       if (!response.data.success) {
-        console.error('Error exchanging public token:', response.data.error);
+        console.error("Error exchanging public token:", response.data.error);
       }
     } catch (error) {
-      console.error('Error exchanging public token:', error);
+      console.error("Error exchanging public token:", error);
     }
-  }
+  };
 
   // Initialize Plaid Link
   const { open, ready } = usePlaidLink({
@@ -75,13 +75,17 @@ export default function Dashboard() {
     onSuccess,
   });
 
-    // Fetch balances when connected
+  // Fetch balances when connected
   useEffect(() => {
     const fetchBalance = async () => {
       const res = await axios.get("/api/plaid/balance");
       setBalances(res.data);
     };
-    fetchBalance();
+    try {
+      fetchBalance();
+    } catch (error) {
+      console.log("Error fetching balance:", error);
+    }
   }, []);
 
   return (
@@ -99,13 +103,15 @@ export default function Dashboard() {
           {balances.accounts.map((acc, i) => (
             <div key={i} className="border p-4 rounded-lg shadow-sm">
               <p className="font-medium">{acc.name}</p>
-              <p>Available: ${acc.balances.available ?? acc.balances.current}</p>
+              <p>
+                Available: ${acc.balances.available ?? acc.balances.current}
+              </p>
               <Link
                 href={`/dashboard/${acc.account_id}`}
                 className="text-blue-600 hover:underline"
-                >
+              >
                 View Transactions →
-            </Link>
+              </Link>
             </div>
           ))}
         </div>

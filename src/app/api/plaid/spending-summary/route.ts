@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { plaidClient } from "@/lib/plaid/client";
-import { getAccessToken } from "@/lib/utils/getAccessToken";
 import { fetchTransactions } from "@/lib/plaid/fetchTransactions";
 
 export async function GET(req: NextRequest) {
@@ -25,12 +23,11 @@ export async function GET(req: NextRequest) {
     const summary: Record<string, number> = {};
     for (const tx of response.data.transactions) {
       if (tx.amount <= 0) continue; // skip income/refunds
-      const category =
-        tx.personal_finance_category?.primary?.[0] ?? "Uncategorized";
+      const category = tx.personal_finance_category?.primary ?? "Uncategorized";
       summary[category] = (summary[category] ?? 0) + tx.amount;
     }
 
-    return NextResponse.json({ summary });
+    return NextResponse.json(summary);
   } catch (error: unknown) {
     console.error(error);
     const message = error instanceof Error ? error.message : String(error);
