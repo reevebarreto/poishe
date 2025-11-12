@@ -1,17 +1,17 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import axios from "axios";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { AccountsGetResponse } from "plaid";
+import { AccountBase } from "plaid";
 import Link from "next/link";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [linkToken, setLinkToken] = useState<string | null>(null);
-  const [balances, setBalances] = useState<AccountsGetResponse | null>(null);
+  const [balances, setBalances] = useState<AccountBase[] | null>(null);
 
   useEffect(() => {
     const initUser = async () => {
@@ -100,7 +100,7 @@ export default function Dashboard() {
       {balances && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Your Accounts</h2>
-          {balances.accounts.map((acc, i) => (
+          {balances.map((acc, i) => (
             <div key={i} className="border p-4 rounded-lg shadow-sm">
               <p className="font-medium">{acc.name}</p>
               <p>
