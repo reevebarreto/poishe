@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { plaidClient } from "@/lib/plaid/client";
-import { getAccessToken } from "@/lib/utils/getAccessToken";
-import { TransactionsGetRequest } from "plaid";
 import { fetchTransactions } from "@/lib/plaid/fetchTransactions";
 
 export async function GET(req: NextRequest) {
   try {
-    // Get access token for the authenticated user
-    const accessToken = await getAccessToken();
-
     // Get account IDs from query parameters
     const { accountId } = Object.fromEntries(
       req.nextUrl.searchParams.entries()
