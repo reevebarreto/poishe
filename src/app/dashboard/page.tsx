@@ -5,14 +5,16 @@ import axios from "axios";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { AccountBase } from "plaid";
+import { AccountBase, AccountSubtype } from "plaid";
 import Link from "next/link";
 import NetWorthCard from "@/components/NetWorthCard";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { CreditCard, PiggyBank, TrendingUp, Wallet } from "lucide-react";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [linkToken, setLinkToken] = useState<string | null>(null);
-  const [balances, setBalances] = useState<AccountBase[] | null>(null);
+  const [accounts, setAccounts] = useState<AccountBase[] | null>(null);
 
   useEffect(() => {
     const initUser = async () => {
@@ -78,28 +80,43 @@ export default function Dashboard() {
 
   // Fetch balances when connected
   useEffect(() => {
-    const fetchBalance = async () => {
+    const fetchAccountsBalance = async () => {
       const res = await axios.get("/api/plaid/balance");
-      setBalances(res.data);
+      setAccounts(res.data);
     };
     try {
-      fetchBalance();
+      fetchAccountsBalance();
     } catch (error) {
       console.log("Error fetching balance:", error);
     }
   }, []);
 
+  const getAccountIcon = (type: string) => {
+    switch (type) {
+      case AccountSubtype.Checking:
+        return <Wallet className="w-5 h-5" />;
+      case AccountSubtype.Savings:
+        return <PiggyBank className="w-5 h-5" />;
+      case AccountSubtype.CreditCard:
+        return <CreditCard className="w-5 h-5" />;
+      case AccountSubtype.MutualFund:
+        return <TrendingUp className="w-5 h-5" />;
+      default:
+        return <Wallet className="w-5 h-5" />;
+    }
+  };
+
   return (
-    <div>
-      <p>Hello {user?.email}</p>
+    <div className="space-y-6">
+      {/* <p>Hello {user?.email}</p>
       {linkToken && (
         <button onClick={() => open()} disabled={!ready}>
           Connect Bank
         </button>
-      )}
+      )} */}
 
       <NetWorthCard />
-
+      {/* 
       {balances && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Your Accounts</h2>
@@ -121,7 +138,68 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
-      )}
+      )} */}
+
+      {/* Account Overview Cards */}
+      <div>
+        <h2 className="text-slate-900 mb-4">Your Accounts</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {accounts?.map((account) => (
+            <Card
+              key={account.account_id}
+              className="hover:shadow-md transition-all duration-200 cursor-pointer border-slate-200 bg-white"
+              // Link to transactions page for this account
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div
+                    className={`p-2 rounded-lg ${
+                      account.subtype === AccountSubtype.Checking
+                        ? "bg-blue-100 text-blue-600"
+                        : account.subtype === AccountSubtype.Savings
+                        ? "bg-green-100 text-green-600"
+                        : account.subtype === AccountSubtype.CreditCard
+                        ? "bg-orange-100 text-orange-600"
+                        : "bg-purple-100 text-purple-600"
+                    }`}
+                  >
+                    {getAccountIcon(account.type)}
+                  </div>
+                  <span className="text-xs text-slate-500 uppercase tracking-wide">
+                    {account.subtype}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="text-slate-900">{account.name}</div>
+                  <div className="text-slate-500 text-sm">
+                    ••••{account.mask}
+                  </div>
+                  <div
+                    className={`text-2xl ${
+                      account.balances.current && account.balances?.current >= 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    €
+                    {account.balances.current
+                      ? Math.abs(account.balances.current).toLocaleString(
+                          "en-US",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )
+                      : "0.00"}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
