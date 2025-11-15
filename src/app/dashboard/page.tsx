@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { AccountBase } from "plaid";
 import Link from "next/link";
+import NetWorthCard from "@/components/NetWorthCard";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -96,6 +97,8 @@ export default function Dashboard() {
           Connect Bank
         </button>
       )}
+
+      <NetWorthCard />
 
       {balances && (
         <div className="space-y-4">
