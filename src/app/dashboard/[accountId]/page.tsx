@@ -4,13 +4,12 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import { TransactionsGetResponse } from "plaid";
 import { Cell, Legend, Pie, PieChart, Tooltip } from "recharts";
-
-type Summary = Record<string, number>;
+import { CategorySpending } from "@/lib/types";
 
 export default function TransactionsPage() {
   const { accountId } = useParams();
   const [transactions, setTransactions] = useState<TransactionsGetResponse>();
-  const [summary, setSummary] = useState<Summary>({});
+  const [summary, setSummary] = useState<CategorySpending[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

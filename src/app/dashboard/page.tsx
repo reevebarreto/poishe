@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import axios from "axios";
 import { redirect } from "next/navigation";
@@ -8,13 +8,25 @@ import { User } from "@supabase/supabase-js";
 import { AccountBase, AccountSubtype } from "plaid";
 import Link from "next/link";
 import NetWorthCard from "@/components/NetWorthCard";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { CreditCard, PiggyBank, TrendingUp, Wallet } from "lucide-react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { CategorySpending } from "@/lib/types";
+import { PIE_COLORS } from "@/lib/constants";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<AccountBase[] | null>(null);
+  const [spendingSummary, setSpendingSummary] = useState<CategorySpending[]>(
+    []
+  );
 
   useEffect(() => {
     const initUser = async () => {
@@ -35,8 +47,31 @@ export default function Dashboard() {
         redirect("/login");
       }
     };
+    const fetchSpendingSummary = async () => {
+      try {
+        const res = await axios.get("/api/plaid/spending-summary");
+
+        const data = res.data; // Record<string, number>
+
+        // Transform into chart-ready array with colors
+        const formatted = data.map((data: CategorySpending, index: number) => ({
+          ...data,
+          color: PIE_COLORS[index % PIE_COLORS.length],
+        }));
+
+        console.log("Formatted summary:", formatted);
+        setSpendingSummary(formatted);
+      } catch (err) {
+        console.error("Error fetching spending summary:", err);
+      }
+    };
+    fetchSpendingSummary();
     initUser();
   }, []);
+
+  const topCategories = useMemo(() => {
+    return [...spendingSummary].sort((a, b) => b.amount - a.amount).slice(0, 3);
+  }, [spendingSummary]);
 
   useEffect(() => {
     if (!user) return;
@@ -200,6 +235,96 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+
+      {/* Quick Spending Summary */}
+      <Card className="bg-white border-slate-200">
+        <CardHeader>
+          <CardTitle className="text-slate-900">
+            Spending Overview - Last 30 Days
+          </CardTitle>
+          <CardDescription>Your top spending categories</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Pie Chart */}
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={spendingSummary}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) =>
+                      `${name} ${((percent ?? 0) * 100).toFixed(2)}%`
+                    }
+                    outerRadius={80}
+                    fill="#8884d8"
+                    nameKey="category"
+                    dataKey="amount"
+                  >
+                    {spendingSummary.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: number) => `€${value.toFixed(2)}`}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Top 3 Categories */}
+            <div className="space-y-4">
+              <div className="text-slate-700 mb-4">Top 3 Categories</div>
+              {topCategories.map((cat, index) => (
+                <div key={cat.category} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-700">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <div className="text-slate-900">{cat.category}</div>
+                        <div className="text-sm text-slate-500">
+                          €{cat.amount.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-slate-900">
+                      {(
+                        (cat.amount /
+                          spendingSummary.reduce(
+                            (sum, c) => sum + c.amount,
+                            0
+                          )) *
+                        100
+                      ).toFixed(1)}
+                      %
+                    </div>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2">
+                    <div
+                      className="progress-bar"
+                      style={{
+                        width: `${
+                          (cat.amount /
+                            spendingSummary.reduce(
+                              (sum, c) => sum + c.amount,
+                              0
+                            )) *
+                          100
+                        }%`,
+                        backgroundColor: cat.color,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -3,3 +3,11 @@ export type Networth = {
   liabilities: number;
   netWorth: number;
 };
+
+export type CategorySpending = {
+  category: string;
+  amount: number;
+  color?: string;
+};
+
+export type SpendingSummary = Record<string, number>;
