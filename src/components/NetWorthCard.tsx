@@ -2,6 +2,14 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Networth } from "@/lib/types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { TrendingDown, TrendingUp } from "lucide-react";
 
 export default function NetWorthCard() {
   const [data, setData] = useState<Networth | null>(null);
@@ -17,32 +25,51 @@ export default function NetWorthCard() {
   if (!data) return <div>Loading...</div>;
 
   return (
-    <div className="p-6 rounded-2xl w-full max-w-md">
-      <h2 className="text-xl font-semibold mb-3">Net Worth Summary</h2>
-      <div className="flex flex-col gap-2">
-        <p>
-          💰 Assets:{" "}
-          <span className="font-medium text-green-600">
-            €{data.assets.toFixed(2)}
-          </span>
-        </p>
-        <p>
-          💳 Liabilities:{" "}
-          <span className="font-medium text-red-600">
-            €{data.liabilities.toFixed(2)}
-          </span>
-        </p>
-        <p className="text-lg mt-2">
-          🧾 Net Worth:{" "}
-          <span
-            className={`font-bold ${
-              data.netWorth >= 0 ? "text-green-700" : "text-red-700"
-            }`}
-          >
-            €{data.netWorth.toFixed(2)}
-          </span>
-        </p>
-      </div>
-    </div>
+    <Card className="gradient-blue text-white stat-card">
+      <CardHeader>
+        <CardTitle className="text-white">Total Net Worth</CardTitle>
+        <CardDescription className="text-blue-100">
+          Your financial overview
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-4xl">
+          €
+          {data.netWorth.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-blue-400/30">
+          <div>
+            <div className="text-blue-100 text-sm mb-1">Total Assets</div>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-green-300" />
+              <span className="text-xl">
+                €
+                {data.assets.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          </div>
+          <div>
+            <div className="text-blue-100 text-sm mb-1">Total Liabilities</div>
+            <div className="flex items-center gap-2">
+              <TrendingDown className="w-4 h-4 text-red-300" />
+              <span className="text-xl">
+                €
+                {data.liabilities.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

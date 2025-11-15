@@ -29,7 +29,7 @@ export default function NavBar() {
             <Link
               key={item.path}
               href={item.path}
-              className={`flex items-center justify-center gap-2 px-4 py-1 rounded-lg transition-all duration-200 ${
+              className={`flex items-center justify-center gap-2 py-1 rounded-lg transition-all duration-200 ${
                 active
                   ? "bg-blue-500 text-white shadow-md"
                   : "text-slate-700 hover:bg-slate-100"
