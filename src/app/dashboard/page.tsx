@@ -105,7 +105,10 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold">Your Accounts</h2>
           {balances.map((acc, i) => (
             <div key={i} className="border p-4 rounded-lg shadow-sm">
-              <p className="font-medium">{acc.name}</p>
+              <p className="font-medium">{acc.official_name || acc.name}</p>
+              <p className="text-sm text-gray-500">
+                •••• {acc.mask} — {acc.subtype?.toUpperCase()}
+              </p>
               <p>
                 Available: ${acc.balances.available ?? acc.balances.current}
               </p>
