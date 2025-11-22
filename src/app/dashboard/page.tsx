@@ -15,10 +15,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CreditCard, PiggyBank, TrendingUp, Wallet } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { CategorySpending } from "@/lib/types";
 import { PIE_COLORS } from "@/lib/constants";
+import { getAccountIcon } from "@/components/ui/account";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -125,21 +125,6 @@ export default function Dashboard() {
       console.log("Error fetching balance:", error);
     }
   }, []);
-
-  const getAccountIcon = (type: string) => {
-    switch (type) {
-      case AccountSubtype.Checking:
-        return <Wallet className="w-5 h-5" />;
-      case AccountSubtype.Savings:
-        return <PiggyBank className="w-5 h-5" />;
-      case AccountSubtype.CreditCard:
-        return <CreditCard className="w-5 h-5" />;
-      case AccountSubtype.MutualFund:
-        return <TrendingUp className="w-5 h-5" />;
-      default:
-        return <Wallet className="w-5 h-5" />;
-    }
-  };
 
   return (
     <div className="space-y-6">
