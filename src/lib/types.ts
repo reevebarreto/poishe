@@ -18,3 +18,8 @@ export type TransactionWithAccountName = Transaction & {
   account_name: string;
   category: string;
 };
+
+export type SpendingTrendPoint = {
+  date: string; // ISO date
+  amount: number;
+};
