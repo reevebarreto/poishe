@@ -1,3 +1,5 @@
+import { Transaction } from "plaid";
+
 export type Networth = {
   assets: number;
   liabilities: number;
@@ -11,3 +13,8 @@ export type CategorySpending = {
 };
 
 export type SpendingSummary = Record<string, number>;
+
+export type TransactionWithAccountName = Transaction & {
+  account_name: string;
+  category: string;
+};
