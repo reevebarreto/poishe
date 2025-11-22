@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * Fetch the Plaid access token for the current authenticated user.
@@ -14,23 +14,23 @@ export async function getAccessToken() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    throw new Error('Unauthorized');
+    throw new Error("Unauthorized");
   }
 
   // Retrieve access token from bank_items
   const { data, error } = await supabase
-    .from('bank_items')
-    .select('access_token')
-    .eq('user_id', user.id)
+    .from("bank_items")
+    .select("access_token")
+    .eq("user_id", user.id)
     .maybeSingle();
 
   if (error) {
-    console.error('Supabase error fetching access token:', error);
-    throw new Error('Database error');
+    console.error("Supabase error fetching access token:", error);
+    throw new Error("Database error");
   }
 
   if (!data) {
-    throw new Error('No linked Plaid account found');
+    throw new Error("No linked Plaid account found");
   }
 
   return data.access_token as string;

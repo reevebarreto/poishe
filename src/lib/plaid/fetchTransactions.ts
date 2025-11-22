@@ -3,18 +3,19 @@ import { plaidClient } from "./client";
 import { getAccessToken } from "@/lib/utils/getAccessToken";
 
 export async function fetchTransactions(
-  accountId: string,
+  accountId: string | null,
   timeInteval: number = 30,
-  offset: number = 0
+  offset: number = 0,
+  accessTokenOverride?: string
 ) {
   try {
     // Get access token for the authenticated user
-    const accessToken = await getAccessToken();
+    const accessToken = accessTokenOverride ?? (await getAccessToken());
 
     // Validate accountId
-    if (!accountId) {
-      throw new Error("No accountId provided");
-    }
+    // if (!accountId) {
+    //   throw new Error("No accountId provided");
+    // }
 
     // Calculate start date based on the time interval
     const startDate = new Date();
@@ -25,7 +26,7 @@ export async function fetchTransactions(
       access_token: accessToken,
       start_date: startDate.toISOString().split("T")[0],
       end_date: new Date().toISOString().split("T")[0],
-      options: { account_ids: [accountId], offset },
+      options: { account_ids: accountId ? [accountId] : undefined, offset },
     };
 
     const response = await plaidClient.transactionsGet(requestBody);
@@ -40,7 +41,10 @@ export async function fetchTransactions(
         access_token: accessToken,
         start_date: startDate.toISOString().split("T")[0],
         end_date: new Date().toISOString().split("T")[0],
-        options: { account_ids: [accountId], offset: transactions.length },
+        options: {
+          account_ids: accountId ? [accountId] : undefined,
+          offset: transactions.length,
+        },
       };
       const paginatedResponse = await plaidClient.transactionsGet(requestBody);
       transactions = transactions.concat(paginatedResponse.data.transactions);
